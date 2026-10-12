@@ -1,0 +1,63 @@
+# Roles I am looking for (matched against job titles)
+target_roles:
+  - ML Engineer
+  - Machine Learning
+  - AI Engineer
+  - KI Engineer
+  - KI-Entwickler
+  - NLP
+  - Data Scientist
+  - KI Manager
+  - Product Manager
+
+# Where I would work
+locations:
+  - Bremen
+  - Hamburg
+  - Remote
+
+# Languages I can work in
+languages:
+  - German
+  - English
+
+# A job should mention at least one of these
+must_have_keywords:
+  - LLM
+  - KI
+  - Künstliche Intelligenz
+
+relevance_keywords:
+  - LLM
+  - NLP
+  - KI
+  - AI
+  - Künstliche Intelligenz
+  - Machine Learning
+  - Maschinelles Lernen
+  - Data Science
+  - Generative AI
+  - GenAI
+  - RAG
+
+# Bonus points if these appear
+nice_to_have:
+  - RAG
+  - FastAPI
+  - HuggingFace
+
+# Jobs containing any of these get dropped immediately
+exclude_keywords:
+  - Praktikum
+  - Werkstudent
+  - Junior
+  - Sales
+
+# Only notify me if the AI score is at least this (0-100)
+min_score_to_notify: 70
+
+# Free text the AI reads when judging each job
+about_me: >
+  Describe your background, the roles you want, your location and
+  work-mode preferences, and what should score low. The scorer reads
+  this text, so be specific.
