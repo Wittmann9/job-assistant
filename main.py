@@ -9,6 +9,21 @@ from notify import send_job
 from scoring import score_job
 from sources import search_arbeitsagentur, fetch_description
 
+import os
+
+QUIET = os.getenv("QUIET") == "1"
+# in the description-loading except block:
+if not QUIET:
+    print(f"  could not load description for {j['title']}: {e}")
+
+# after saving a scored job:
+if not QUIET:
+    print(f"  {score:3d}  {j['title'][:60]} | {j['company'][:25]}")
+
+# in the dry-run branch:
+if not QUIET:
+    print(f"  [dry run] {j['score']}  {j['title']} | {j['company']}")
+
 load_dotenv()
 
 
@@ -54,7 +69,9 @@ def run_cycle(days, dry_run, max_alerts, limit):
         new = new[:limit]
         print(f"Processing only the first {len(new)} (--limit)")
 
-    for j in new:
+    for i, j in enumerate(new, 1):
+        if i % 10 == 0:
+            print(f"Progress: {i}/{len(new)}", flush=True)
         if not title_ok(j, profile):
             db.save(conn, j, 0, "excluded by title", "filtered")
             continue
