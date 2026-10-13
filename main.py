@@ -51,7 +51,8 @@ def run_cycle(days, dry_run, max_alerts, limit):
     # Record button taps and commands received since the last run
     if not dry_run:
         try:
-            process_updates(conn)
+            n = process_updates(conn)
+            print(f"Processed {n} Telegram updates", flush=True)
         except Exception as e:
             print(f"Telegram update check failed: {e}", flush=True)
 
