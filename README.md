@@ -222,7 +222,7 @@ This is a personal project. It is not affiliated with or endorsed by the Bundesa
 
 ## Author
 
-[Your name] · [LinkedIn or website]
+Oxana Vitman · [LinkedIn](www.linkedin.com/in/oxana-vitman-a97b38217)
 
 ## License
 
