@@ -2,6 +2,7 @@ import argparse
 import html
 import os
 import time
+from collections import Counter
 
 from dotenv import load_dotenv
 
@@ -9,7 +10,8 @@ import db
 from notify import api, job_keyboard, send_text
 
 load_dotenv()
-CHAT_ID = str(os.getenv("TELEGRAM_CHAT_ID", ""))
+CHAT_ID = str(os.getenv("TELEGRAM_CHAT_ID", "")).strip()
+STATS = Counter()
 
 HELP = (
     "<b>Job assistant</b>\n"
@@ -48,22 +50,29 @@ def format_stats(conn):
 
 
 def handle_message(conn, msg):
-    if str((msg.get("chat") or {}).get("id")) != CHAT_ID:
-        return  # ignore everyone except you
+    if str((msg.get("chat") or {}).get("id")).strip() != CHAT_ID:
+        STATS["ignored_other_chat"] += 1
+        return
     text = (msg.get("text") or "").strip().lower()
     cmd = text.split()[0].split("@")[0] if text else ""
     if cmd == "/saved":
         send_text(format_saved(conn))
+        STATS["cmd_saved"] += 1
     elif cmd == "/stats":
         send_text(format_stats(conn))
+        STATS["cmd_stats"] += 1
     elif cmd in ("/start", "/help"):
         send_text(HELP)
+        STATS["cmd_help"] += 1
+    else:
+        STATS["ignored_text"] += 1
 
 
 def handle_callback(conn, cq):
     msg = cq.get("message") or {}
     chat_id = (msg.get("chat") or {}).get("id")
-    if str(chat_id) != CHAT_ID:
+    if str(chat_id).strip() != CHAT_ID:
+        STATS["ignored_other_chat"] += 1
         return
     action, _, job_id = (cq.get("data") or "").partition("|")
     job = db.get_job(conn, job_id)
@@ -75,6 +84,7 @@ def handle_callback(conn, cq):
             pass
 
     if not job or action not in ("s", "k", "u"):
+        STATS["unknown_job"] += 1
         answer("Unknown job")
         return
 
@@ -86,6 +96,7 @@ def handle_callback(conn, cq):
         status, label, state = "notified", "Restored", None
 
     db.mark(conn, job_id, status)
+    STATS[f"tap_{status}"] += 1
     answer(label)
     api("editMessageReplyMarkup", chat_id=chat_id,
         message_id=msg["message_id"],
@@ -104,9 +115,14 @@ def process_updates(conn, timeout=0):
                 handle_callback(conn, u["callback_query"])
             elif "message" in u:
                 handle_message(conn, u["message"])
+            else:
+                STATS["other_update"] += 1
         except Exception as e:
-            print(f"Update {u.get('update_id')} failed: {e}", flush=True)
+            STATS["errors"] += 1
+            print(f"Update failed: {type(e).__name__}: {e}", flush=True)
         db.set_meta(conn, "tg_offset", str(u["update_id"] + 1))
+    if updates:
+        print(f"Update outcomes: {dict(STATS)}", flush=True)
     return len(updates)
 
 
